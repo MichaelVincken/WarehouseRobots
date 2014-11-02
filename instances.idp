@@ -1,4 +1,4 @@
-include "../modeloplossingen/solution.idp" //put your solution here
+include "/WarehouseRobots/modeloplossingen/solution.idp" //put your solution here
 include <mx>
 
 procedure check(){
