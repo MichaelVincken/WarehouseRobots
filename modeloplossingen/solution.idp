@@ -44,9 +44,10 @@ theory solution: warehousevoc{
         ! p1 [pallet], p2 [pallet] , p3 [pallet] : above(p1,p2) <- above(p1,p3) & above(p3,p2).
     }
 
+    // // A robot cannot drive on a the position that is inaccessible. 
     // Pallets have a position.
     // A pallet is either standing on the floor..
-    ! p [pallet]  : ~inaccessible(position(p)).
+    ! l [location] : inaccessible(l) => l ~= robotposition & ~? p [pallet] : position(p) = l. 
 
     // ..on another pallet or it is carried by the robot.
     // Pallets cannot fly, so there has to a pallet q -standing on the ground- pallet p is resting on.
@@ -72,14 +73,13 @@ theory solution: warehousevoc{
 
     // He can carry pallets around, but no more than one pallet at a time.
     ?=<1 p [pallet] : carried(p).
-
-    // A robot cannot drive on a the position that is inaccessible.
-    ~inaccessible(robotposition).
-
-    // The robot cannot stand on a stack of pallets
-    ! p [pallet] : ~carried(p) => position(p) ~= robotposition.
-    
+ 
     // Pallets only have the same position as the robot when they are being carried by the robot.
-    ! p [pallet] : carried(p) => position(p) = robotposition.
+    ! p [pallet] : carried(p) <=> position(p) = robotposition.
+    
+    // A robot can only carry one pallet where no plattet are residing on.
+    ! p [pallet] : carried(p) => ~? q [pallet] : above(q,p).
 
+    // The locations of two pallet are the same if and only if the two pallets are above each other.
+    ! p1 [pallet] , p2 [pallet] : position(p1) = position(p2) & p1 ~= p2 <=> above(p1,p2) | above(p2,p1).
 }

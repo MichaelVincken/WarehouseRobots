@@ -2,19 +2,34 @@ include "/WarehouseRobots/modeloplossingen/solution.idp" //put your solution her
 include <mx>
 
 procedure main(){
-	structures = { 
+    check()
+    //printcore(solution, OK0)
+    //printmodels(allmodels(solution, OK8))
+}
+
+procedure check(){
+	structures = {
 		{OK0, 		"OK0", 		1},
 		{OK1, 		"OK1", 		1},
 		{OK2, 		"OK2", 		4},
 		{OK3, 		"OK3", 		1},
+        {OK4,		"OK4",		1},
+        {OK5,		"OK5",		24},
+        {OK6,		"OK6",		720},
+        {OK7,		"OK7",		120},
+        {OK8,		"OK8",		6},
 		{NotOK1, 	"NotOK1",	0},
 		{NotOK2, 	"NotOK2",	0},
 		{NotOK3, 	"NotOK3",	0},
 		{NotOK4, 	"NotOK4",	0},
-		{NotOK5, 	"NotOK5",	0},		
+		{NotOK5, 	"NotOK5",	0},
 		{NotOK6, 	"NotOK6",	0},
+        {NotOK7,	"NotOK7",	0},
+        {NotOK8,	"NotOK8",	0},
+        {NotOK9,	"NotOK9",	0},
+        {NotOK10,	"NotOK10",	0}
 	}
-		
+
 	for i = 1, #structures do
 		local current = structures[i]
 		local struc=current[1]
@@ -53,6 +68,7 @@ structure OK0:warehousevoc{
 	ceiling = 3
 	facing= south()
 }
+
 
 structure OK1:warehousevoc{
 	xco={1..3}
@@ -168,4 +184,127 @@ structure NotOK6:warehousevoc{
 	on={(p1,p2);(p2,p3);(p3,p4)}
 	robotposition = grid(2,2)
 	facing=north()
+}
+
+//
+// Added structures
+//
+
+structure OK4:warehousevoc {
+    xco={1..2}
+	yco={1}
+	height = {0..1}
+	pallet={1..2}
+	inaccessible={}
+	robotposition = grid(1,1)
+    carried={1}
+	facing=north()
+	ceiling = 1
+}
+
+structure OK5:warehousevoc {
+    xco={1..2}
+	yco={1..2}
+	height = {0..2}
+	pallet={1..5}
+	inaccessible={grid(2,2)}
+	robotposition = grid(1,1)
+    carried={1}
+	facing=north()
+	ceiling = 2
+}
+
+structure OK6:warehousevoc {
+    xco={1..2}
+	yco={1..2}
+	height = {0..2}
+	pallet={1..7}
+	inaccessible={}
+	robotposition = grid(1,1)
+    carried={1}
+	facing=north()
+	ceiling = 2
+}
+
+structure OK7:warehousevoc {
+    xco={1..2}
+	yco={1..2}
+	height = {0..2}
+	pallet={1..5}
+    inaccessible={grid(2,2)}
+	robotposition = grid(1,1)
+	facing=north()
+	ceiling = 2
+}
+
+structure OK8:warehousevoc{
+    xco={1..2}
+    yco={1}
+    height = {0..3}
+    pallet={p1;p2;p3;p4}
+    inaccessible={}
+    robotposition = grid(2,1)
+    carried={p1}
+    facing=north()
+    ceiling = 3
+}
+
+//Carried has different location
+structure NotOK7:warehousevoc{
+	xco={1..3}
+	yco={1..3}
+	height = {0..3}
+	pallet={p1;p2}
+	inaccessible={grid(1,3);grid(2,2)}
+	position={p1->grid(1,1); p2->grid(1,1)}
+	on={(p2,p1)}
+	robotposition = grid(3,3)
+    carried={p2}
+	facing=north()
+	ceiling = 3
+}
+
+
+//Robot on same location as two pallets
+structure NotOK8:warehousevoc{
+	xco={1..3}
+	yco={1..3}
+	height = {0..3}
+	pallet={p1;p2}
+	inaccessible={grid(1,3);grid(2,2)}
+	position={p1->grid(1,1); p2->grid(1,1)}
+	on={(p2,p1)}
+	robotposition = grid(1,1)
+    carried={p2}
+	facing=north()
+	ceiling = 3
+}
+
+
+//Robot on same location as non-carried pallet
+structure NotOK9:warehousevoc{
+	xco={1..3}
+	yco={1..3}
+	height = {0..3}
+	pallet={p1}
+	inaccessible={grid(1,3);grid(2,2)}
+	position={p1->grid(1,1)}
+	on={}
+	robotposition = grid(1,1)
+    carried={}
+	facing=north()
+	ceiling = 3
+}
+
+//Not enough tiles for pallets
+structure NotOK10:warehousevoc {
+    xco={1..2}
+	yco={1..2}
+	height = {0..2}
+	pallet={1..6}
+	inaccessible={grid(2,2)}
+	robotposition = grid(1,1)
+    carried={1}
+	facing=north()
+	ceiling = 2
 }
