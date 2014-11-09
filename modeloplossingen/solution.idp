@@ -45,13 +45,12 @@ theory solution: warehousevoc{
     }
 
     // // A robot cannot drive on a the position that is inaccessible. 
-    // Pallets have a position.
-    // A pallet is either standing on the floor..
+    // Pallets cannot have a position that is inaccessible.
     ! l [location] : inaccessible(l) => l ~= robotposition & ~? p [pallet] : position(p) = l. 
 
-    // ..on another pallet or it is carried by the robot.
+    // A pallet is either standing on the floor, on another pallet or it is carried by the robot.
     // Pallets cannot fly, so there has to a pallet q -standing on the ground- pallet p is resting on.
-    // ! p [pallet] : carried(p) | ? q [pallet] : on(p,q).
+    ! p [pallet] : carried(p) | ? q [pallet] : on(p,q) | height(p) = 1.
 
     // It cannot be the case that pallet p1 is positioned on pallet p2 and at the same time pallet p2 rests on pallet p1.
     // ! p1 [pallet], p2 [pallet] : on(p1,p2) => ~on(p2,p1).
