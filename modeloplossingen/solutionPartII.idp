@@ -1,0 +1,151 @@
+/** 
+* Skeleton for the first part of the project. 
+*
+* No names in this skeleton can be changed, you can add things to the vocabulary and you should definitely add stuff to the theory. 
+*/
+
+/**
+How to run tests:
+idp/WarehouseRobots$ idp instances.idp -e "check()"
+*/
+
+include<LTC>
+vocabulary warehousevoc{
+    
+    // Time
+    type Time
+    Start: Time
+    partial Next(Time): Time
+    
+    type pallet
+
+    on(Time,pallet,pallet) //on(p1,p2) means p1 is standing on p2
+    carried(Time,pallet) //carried(p1) means p1 is carried by the robot
+
+    type xco isa nat
+    type yco isa nat	
+    type location constructed from {grid(xco,yco)}
+
+    inaccessible(location) //Locations that cannot be accessed by the robot and cannot be occupied by pallets
+    
+    robotposition(Time): location //position of the robot at timestamp Time
+    position(Time,pallet): location //position of the pallet at timestamp Time
+
+    type dir constructed from {north, east, south, west}
+    facing(Time): dir //direction in which the robot is facing
+
+    type height isa nat 
+    ceiling: height //the height of the ceiling
+
+    //Extra symbols
+    above(pallet,pallet) //above(p1,p2) means p1 is above p2
+    height(pallet) : height //height of the pallets
+    
+    // Actions
+    type action constructed from {rotateRight, rotateLeft, moveFront, moveBack, pickUp(pallet), putDown(pallet)}
+    execute(Time, action)
+    
+    // Fluents ?
+    robotcarries(Time,pallet)
+
+    C_robotposition(Time)
+    C_robotdir(Time)
+    C_robotcarries(Time,pallet)
+    
+    C_Nrobotcarries(Time,pallet)
+	C_robotdirNorth(Time)
+    
+    I_robotposition(location)
+    I_robotdir(dir)
+	I_robotcarries(pallet)
+}
+
+theory solution: warehousevoc{
+
+    // PALLET THEORY
+
+    // Inductive definition of above
+    {
+        ! p1 [pallet], p2 [pallet] : above(p1,p2) <- on(p1,p2).
+        ! p1 [pallet], p2 [pallet] , p3 [pallet] : above(p1,p2) <- above(p1,p3) & above(p3,p2).
+    }
+
+    // // A robot cannot drive on a the position that is inaccessible. 
+    // Pallets cannot have a position that is inaccessible.
+    ! l [location] : inaccessible(l) => l ~= robotposition & ~? p [pallet] : position(p) = l. 
+
+    // A pallet is either standing on the floor, on another pallet or it is carried by the robot.
+    // Pallets cannot fly, so there has to a pallet q -standing on the ground- pallet p is resting on.
+    ! p [pallet] : carried(p) | ? q [pallet] : on(p,q) | height(p) = 1.
+
+    // It cannot be the case that pallet p1 is positioned on pallet p2 and at the same time pallet p2 rests on pallet p1.
+    // ! p1 [pallet], p2 [pallet] : on(p1,p2) => ~on(p2,p1).
+    // See manual p.11 (Binary Quantification)
+    ! (p1,p2) in on: ~on(p2,p1).
+
+    // Pallets have the same size, hence there can be at most one other pallet resting on every other pallet.
+    ! p1 [pallet], p2 [pallet] , p3 [pallet] : (on(p2,p1) & on(p3,p1)) => p2 = p3.
+
+    // The height of a pallet p is defined by the number of pallets pallet p is resting on plus one (pallet p itself).
+    ! p [pallet] : height(p) = #{q [pallet] : above(p,q)} + 1.
+
+    // Stacks of pallets are limited in height by the ceiling of the warehouse.
+    ! p [pallet] : height(p) =< ceiling.
+
+
+
+    // ROBOT THEORY
+
+    // He can carry pallets around, but no more than one pallet at a time.
+    ?=<1 p [pallet] : carried(p).
+ 
+    // Pallets only have the same position as the robot when they are being carried by the robot.
+    ! p [pallet] : carried(p) <=> position(p) = robotposition.
+    
+    // A robot can only carry one pallet where no plattet are residing on.
+    ! p [pallet] : carried(p) => ~? q [pallet] : above(q,p).
+
+    // The locations of two pallet are the same if and only if the two pallets are above each other.
+    ! p1 [pallet] , p2 [pallet] : position(p1) = position(p2) & p1 ~= p2 <=> above(p1,p2) | above(p2,p1).
+    
+}
+
+theory timeTheo:warehousevoc{
+    {
+        Start = MIN[:Time].
+        !t: Next(t) = t + 1 <- Time(t+1).
+    }
+}
+
+
+theory RobotTheory : warehousevoc {
+    
+    
+    {
+     	// INERTIA
+        robotposition(Start) = x <- I_robotposition(x).
+        facing(Start) = f <- I_robotdir(f).
+        
+        // SUCCESSOR STATE ACTION AXIOM
+        ! p [pallet] : robotcarries(Start,p) <- I_robotcarries(p).
+        ! p [pallet] , t[Time] : robotcarries(Next(t),p) <- C_robotcarries(t,p).
+        ! p [pallet] , t[Time] : robotcarries(Next(t),p) <- carried(t,p) & ~C_Nrobotcarries(t,p).
+
+    }
+    
+    // CAUSES
+    {
+        // Naar voren rijden
+        ! t[Time] : C_robotposition(t) <- execute(t,moveFront).    
+        // Naar achteren rijden
+        ! t[Time] : C_robotposition(t) <- execute(t,moveBack).
+        // Naar rechts draaien
+        ! t[Time] : C_robotdir(t) <- execute(t,rotateRight).    
+        // Naar links draaien
+        ! t[Time] : C_robotdir(t) <- execute(t,rotateLeft).
+        // PickUp
+        ! t[Time], p[pallet] : C_robotcarries(t,p) <- execute(t,pickUp(p)).    
+        // putDown
+        ! t[Time], p[pallet]: C_Nrobotcarries(t,p) <- execute(t,putDown(p)).    
+    }
+}
